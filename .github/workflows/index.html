@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid Athlete OS v1.0</title>
+    <style>
+        /* 
+         * DESIGN SYSTEM & VARIABLES 
+         * Inspired by Linear, Raycast, Apple Human Interface
+         */
+        :root {
+            /* Semantic Colors - Dark Mode First */
+            --bg-app: #0f1115;       /* Deepest background */
+            --bg-surface: #161922;   /* Panels/Cards */
+            --bg-elevated: #1c212e;  /* Hover states/Modals */
+            --border-subtle: #2d3342;
+            --border-active: #3e465a;
+            
+            /* Typography Colors */
+            --text-primary: #f0f2f5;
+            --text-secondary: #9ca3af;
+            --text-tertiary: #6b7280;
+            
+            /* Functional Colors */
+            --accent-primary: #3b82f6; /* Blue - Strength */
+            --accent-success: #10b981; /* Green - Recovery/Cardio */
+            --accent-warning: #f59e0b; /* Orange - Endurance */
+            --accent-danger: #ef4444;  /* Red - Intensity */
+            --accent-purple: #8b5cf6;  /* Purple - Mobility */
+            
+            /* Spacing & Layout */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-xxl: 48px;
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* RESET & BASE */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            font-size: 15px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            height: 100vh;
+            overflow: hidden; /* App-like scroll handling */
+            display: flex;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-active); }
+
+        /* TYPOGRAPHY UTILS */
+        h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.02em; color: var(--text-primary); }
+        h1 { font-size: 2rem; line-height: 1.2; }
+        h2 { font-size: 1.5rem; margin-bottom: var(--space-md); }
+        h3 { font-size: 1.1rem; margin-bottom: var(--space-sm); }
+        .text-muted { color: var(--text-secondary); font-size: 0.9em; }
+        .text-small { font-size: 0.85em; color: var(--text-tertiary); }
+        .mono { font-family: var(--font-mono); font-size: 0.9em; }
+
+        /* LAYOUT STRUCTURE */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* SIDEBAR NAVIGATION */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            padding: var(--space-lg);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-xl);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+        
+        .brand-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+            border-radius: 6px;
+        }
+
+        .nav-group { margin-bottom: var(--space-lg); }
+        .nav-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-sm);
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-elevated); color: var(--accent-primary); font-weight: 500; }
+        .nav-icon { width: 18px; height: 18px; opacity: 0.7; }
+
+        /* MAIN CONTENT AREA */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-xl) var(--space-xxl);
+            scroll-behavior: smooth;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-md);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .status-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-success);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        /* DASHBOARD GRID */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        
+        .card:hover {
+            border-color: var(--border-active);
+            box-shadow: var(--shadow-card);
+        }
+
+        .metric-value { font-size: 2rem; font-weight: 700; margin: var(--space-sm) 0; }
+        .metric-label { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* VISUALIZATION: 7 PILLARS DIAGRAM */
+        .pillars-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .pillar-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pillar-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: var(--color);
+        }
+
+        .pillar-icon { font-size: 1.5rem; margin-bottom: var(--space-sm); display: block; }
+        .pillar-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+        .pillar-freq { font-size: 0.8rem; color: var(--text-tertiary); }
+
+        /* WORKOUT SECTIONS */
+        .workout-day {
+            margin-bottom: var(--space-xxl);
+            scroll-margin-top: var(--space-xl);
+        }
+
+        .day-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .day-tag {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .exercise-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .exercise-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: var(--space-lg);
+            align-items: start;
+            position: relative;
+        }
+
+        .exercise-info h4 { margin-bottom: var(--space-xs); color: var(--text-primary); }
+        .exercise-meta { display: flex; gap: var(--space-sm); margin-top: var(--space-sm); flex-wrap: wrap; }
+        
+        .badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .exercise-stats {
+            text-align: right;
+            border-left: 1px solid var(--border-subtle);
+            padding-left: var(--space-md);
+        }
+
+        .stat-row { margin-bottom: var(--space-xs); }
+        .stat-label { font-size: 0.8rem; color: var(--text-tertiary); display: block; }
+        .stat-val { font-weight: 600; font-family: var(--font-mono); }
+
+        .exercise-notes {
+            grid-column: 1 / -1;
+            margin-top: var(--space-md);
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--border-subtle);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            background: rgba(0,0,0,0.2);
+            padding: var(--space-sm);
+            border-radius: var(--radius-sm);
+        }
+
+        /* CHECKBOX CUSTOMIZATION */
+        .custom-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-active);
+            border-radius: 4px;
+            cursor: pointer;
+            position: absolute;
+            top: var(--space-lg);
+            right: var(--space-lg);
+            transition: all var(--transition-fast);
+        }
+
+        .custom-checkbox:checked {
+            background: var(--accent-success);
+            border-color: var(--accent-success);
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* TABLES */
+        table { width: 100%; border-collapse: collapse; margin-top: var(--space-md); }
+        th { text-align: left; color: var(--text-tertiary); font-weight: 500; font-size: 0.85rem; padding-bottom: var(--space-sm); border-bottom: 1px solid var(--border-subtle); }
+        td { padding: var(--space-sm) 0; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+
+        /* PRINT STYLES */
+        @media print {
+            :root {
+                --bg-app: #ffffff;
+                --bg-surface: #ffffff;
+                --text-primary: #000000;
+                --text-secondary: #333333;
+                --border-subtle: #dddddd;
+            }
+            
+            body { height: auto; overflow: visible; display: block; background: white; color: black; }
+            .sidebar, .header, .custom-checkbox { display: none !important; }
+            .main-content { padding: 0; overflow: visible; }
+            .card, .exercise-card { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; background: white; }
+            .exercise-stats { border-left: 1px solid #eee; }
+            h1, h2, h3 { color: black !important; }
+            .status-badge { border: 1px solid #000; color: #000; background: none; }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); padding: var(--space-md); }
+            .nav-group { display: flex; overflow-x: auto; gap: var(--space-sm); margin-bottom: 0; }
+            .nav-label { display: none; }
+            .nav-item { white-space: nowrap; }
+            .exercise-card { grid-template-columns: 1fr; }
+            .exercise-stats { border-left: none; border-top: 1px solid var(--border-subtle); padding-left: 0; padding-top: var(--space-md); text-align: left; display: flex; gap: var(--space-lg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="brand">
+            <div class="brand-icon"></div>
+            <span>Hybrid OS</span>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">Overview</div>
+            <a href="#dashboard" class="nav-item active">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                Dashboard
+            </a>
+            <a href="#philosophy" class="nav-item">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Philosophy
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">Weekly Routine</div>
+            <a href="#monday" class="nav-item">Monday: Strength A</a>
+            <a href="#tuesday" class="nav-item">Tuesday: Zone 2 + Core</a>
+            <a href="#wednesday" class="nav-item">Wednesday: Strength B</a>
+            <a href="#thursday" class="nav-item">Thursday: Zone 2 + Core</a>
+            <a href="#friday" class="nav-item">Friday: Strength A</a>
+            <a href="#saturday" class="nav-item">Saturday: Zone 2 + Core</a>
+            <a href="#sunday" class="nav-item">Sunday: Strength B</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">Resources</div>
+            <a href="#recovery" class="nav-item">Recovery Protocol</a>
+            <a href="#movement" class="nav-item">Movement Quality</a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <!-- HEADER -->
+        <header class="header">
+            <div>
+                <h1>Hybrid Athlete Blueprint</h1>
+                <p class="text-muted">v1.0 • Jack of All Trades → Top 1% Through Consistency</p>
+            </div>
+            <div class="status-badge">System Active</div>
+        </header>
+
+        <!-- DASHBOARD -->
+        <section id="dashboard">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="metric-label">Current Focus</div>
+                    <div class="metric-value">General Preparedness</div>
+                    <p class="text-small">Building base capacity across all 7 pillars.</p>
+                </div>
+                <div class="card">
+                    <div class="metric-label">Training Frequency</div>
+                    <div class="metric-value">6 Days / Week</div>
+                    <p class="text-small">1 Rest Day • High Consistency Required</p>
+                </div>
+                <div class="card">
+                    <div class="metric-label">Primary Goal</div>
+                    <div class="metric-value">Longevity & Resilience</div>
+                    <p class="text-small">Minimum Effective Dose • Highest ROI</p>
+                </div>
+            </div>
+
+            <h2>The 7 Pillars of Performance</h2>
+            <div class="pillars-container">
+                <div class="pillar-card" style="--color: var(--accent-primary)">
+                    <span class="pillar-icon">🏋️</span>
+                    <div class="pillar-title">Full Body Strength</div>
+                    <div class="pillar-freq">4x/Week • 60-75m</div>
+                </div>
+                <div class="pillar-card" style="--color: var(--accent-purple)">
+                    <span class="pillar-icon">🧘</span>
+                    <div class="pillar-title">Core System</div>
+                    <div class="pillar-freq">3x/Week • 15-20m</div>
+                </div>
+                <div class="pillar-card" style="--color: var(--accent-warning)">
+                    <span class="pillar-icon">⚡</span>
+                    <div class="pillar-title">Muscular Endurance</div>
+                    <div class="pillar-freq">3x/Week • 20-30m</div>
+                </div>
+                <div class="pillar-card" style="--color: var(--accent-success)">
+                    <span class="pillar-icon">❤️</span>
+                    <div class="pillar-title">Zone 2 Cardio</div>
+                    <div class="pillar-freq">3x/Week • 30-45m</div>
+                </div>
+                <div class="pillar-card" style="--color: var(--accent-primary)">
+                    <span class="pillar-icon">🤸</span>
+                    <div class="pillar-title">Movement Quality</div>
+                    <div class="pillar-freq">Daily • 10-15m</div>
+                </div>
+                <div class="pillar-card" style="--color: var(--accent-danger)">
+                    <span class="pillar-icon">🚀</span>
+                    <div class="pillar-title">Athletic Finishers</div>
+                    <div class="pillar-freq">4x/Week • 10-15m</div>
+                </div>
+                <div class="pillar-card" style="--color: var(--text-secondary)">
+                    <span class="pillar-icon">💤</span>
+                    <div class="pillar-title">Recovery</div>
+                    <div class="pillar-freq">Daily • Priority #1</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MONDAY -->
+        <section id="monday" class="workout-day">
+            <div class="day-header">
+                <span class="day-tag">MONDAY</span>
+                <h2>Strength A + Sprint Finisher</h2>
+            </div>
+
+            <div class="exercise-list">
+                <!-- Back Squat -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Back Squat</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Compound</span>
+                            <span class="badge">Legs</span>
+                            <span class="badge">Strength</span>
+                        </div>
+                        <div class="exercise-notes">
+                            <strong>Cue:</strong> Break at hips and knees simultaneously. Keep chest up. Drive through mid-foot.
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Sets</span>
+                            <span class="stat-val">4</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Reps</span>
+                            <span class="stat-val">5-8</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">RPE</span>
+                            <span class="stat-val">7-8</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bench Press -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Bench Press</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Horizontal Push</span>
+                            <span class="badge">Chest</span>
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Sets</span><span class="stat-val">4</span></div>
+                        <div class="stat-row"><span class="stat-label">Reps</span><span class="stat-val">6-10</span></div>
+                    </div>
+                </div>
+
+                <!-- Romanian Deadlift -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Romanian Deadlift</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Hinge</span>
+                            <span class="badge">Hamstrings</span>
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Sets</span><span class="stat-val">3</span></div>
+                        <div class="stat-row"><span class="stat-label">Reps</span><span class="stat-val">8-10</span></div>
+                    </div>
+                </div>
+
+                <!-- Pull Ups -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Pull Ups / Lat Pulldown</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Vertical Pull</span>
+                            <span class="badge">Back</span>
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Sets</span><span class="stat-val">4</span></div>
+                        <div class="stat-row"><span class="stat-label">Reps</span><span class="stat-val">6-10</span></div>
+                    </div>
+                </div>
+
+                <!-- Overhead Press -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Overhead Press</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Vertical Push</span>
+                            <span class="badge">Shoulders</span>
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Sets</span><span class="stat-val">3</span></div>
+                        <div class="stat-row"><span class="stat-label">Reps</span><span class="stat-val">8-10</span></div>
+                    </div>
+                </div>
+
+                <!-- Accessories Grouped -->
+                <div class="exercise-card" style="display: block;">
+                    <h4>Accessories Circuit</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Exercise</th>
+                                <th>Sets</th>
+                                <th>Reps</th>
+                                <th>Focus</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Bulgarian Split Squat</td>
+                                <td>3</td>
+                                <td>10/side</td>
+                                <td>Unilateral Leg</td>
+                            </tr>
+                            <tr>
+                                <td>Chest Supported Row</td>
+                                <td>3</td>
+                                <td>10-12</td>
+                                <td>Upper Back</td>
+                            </tr>
+                            <tr>
+                                <td>Lateral Raise</td>
+                                <td>3</td>
+                                <td>15-20</td>
+                                <td>Side Delts</td>
+                            </tr>
+                            <tr>
+                                <td>Face Pull</td>
+                                <td>3</td>
+                                <td>15</td>
+                                <td>Rear Delts/Rotator</td>
+                            </tr>
+                            <tr>
+                                <td>Standing Calf Raise</td>
+                                <td>4</td>
+                                <td>12-15</td>
+                                <td>Calves</td>
+                            </tr>
+                            <tr>
+                                <td>Tibialis Raise</td>
+                                <td>3</td>
+                                <td>15-20</td>
+                                <td>Knee Health</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Finisher -->
+            <div style="margin-top: var(--space-lg); padding: var(--space-md); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md);">
+                <h4 style="color: var(--accent-danger); margin-bottom: var(--space-sm);">🔥 Athletic Finisher: Sprints</h4>
+                <p class="text-small">6 x 20m OR 5 x 30m. Full recovery between sets. Max effort.</p>
+            </div>
+
+            <!-- Stretching -->
+            <div style="margin-top: var(--space-md);">
+                <h4>Post-Workout Static Stretching</h4>
+                <p class="text-small">Hold each for 45-60s: Hamstrings, Hip Flexors, Glutes, Adductors, Calves, Chest, Lats, Shoulders, Triceps, Forearms, Neck.</p>
+            </div>
+        </section>
+
+        <!-- TUESDAY -->
+        <section id="tuesday" class="workout-day">
+            <div class="day-header">
+                <span class="day-tag">TUESDAY</span>
+                <h2>Zone 2 + Core + Muscular Endurance</h2>
+            </div>
+
+            <div class="exercise-list">
+                <!-- Zone 2 -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Zone 2 Cardio</h4>
+                        <div class="exercise-meta">
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success);">Aerobic Base</span>
+                        </div>
+                        <div class="exercise-notes">
+                            Choose One: Incline Walking, Jogging, Cycling, Rowing, Swimming.<br>
+                            <strong>Intensity:</strong> Conversational pace. Heart rate ~130-150 bpm.
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Duration</span><span class="stat-val">30-45m</span></div>
+                    </div>
+                </div>
+
+                <!-- Core -->
+                <div class="exercise-card" style="display: block;">
+                    <h4>Core Routine</h4>
+                    <table>
+                        <thead><tr><th>Exercise</th><th>Sets</th><th>Reps/Time</th></tr></thead>
+                        <tbody>
+                            <tr><td>Dead Bug</td><td>3</td><td>10/side</td></tr>
+                            <tr><td>Pallof Press</td><td>3</td><td>12/side</td></tr>
+                            <tr><td>Side Plank</td><td>3</td><td>30-45 sec</td></tr>
+                            <tr><td>Hanging Leg Raise</td><td>3</td><td>10-15</td></tr>
+                            <tr><td>Ab Wheel</td><td>3</td><td>8-12</td></tr>
+                            <tr><td>Suitcase Carry</td><td>3</td><td>30m</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Muscular Endurance -->
+                <div class="exercise-card" style="display: block;">
+                    <h4>Muscular Endurance Circuit</h4>
+                    <p class="text-small" style="margin-bottom: var(--space-sm);">Perform 3-5 Rounds. Minimal rest between exercises.</p>
+                    <table>
+                        <thead><tr><th>Exercise</th><th>Reps</th></tr></thead>
+                        <tbody>
+                            <tr><td>Push Ups</td><td>20</td></tr>
+                            <tr><td>Bodyweight Squats</td><td>25</td></tr>
+                            <tr><td>Inverted Rows</td><td>15</td></tr>
+                            <tr><td>Walking Lunges</td><td>20</td></tr>
+                            <tr><td>Kettlebell Swings</td><td>20</td></tr>
+                            <tr><td>Jump Rope</td><td>60 sec</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobility -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Daily Mobility</h4>
+                        <div class="exercise-notes">
+                            Deep Squat Hold (2m), World's Greatest Stretch (5/side), 90-90 Hip Switch (10), Couch Stretch (1m), Thoracic Rotation (10/side).
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WEDNESDAY -->
+        <section id="wednesday" class="workout-day">
+            <div class="day-header">
+                <span class="day-tag">WEDNESDAY</span>
+                <h2>Strength B + Agility Finisher</h2>
+            </div>
+
+            <div class="exercise-list">
+                <!-- Trap Bar Deadlift -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Trap Bar Deadlift</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Hinge</span>
+                            <span class="badge">Full Body</span>
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Sets</span><span class="stat-val">4</span></div>
+                        <div class="stat-row"><span class="stat-label">Reps</span><span class="stat-val">5</span></div>
+                    </div>
+                </div>
+
+                <!-- Incline DB Press -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Incline DB Press</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Horizontal Push</span>
+                            <span class="badge">Upper Chest</span>
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Sets</span><span class="stat-val">4</span></div>
+                        <div class="stat-row"><span class="stat-label">Reps</span><span class="stat-val">8</span></div>
+                    </div>
+                </div>
+
+                <!-- Front Squat -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Front Squat</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Squat</span>
+                            <span class="badge">Quads/Core</span>
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Sets</span><span class="stat-val">3</span></div>
+                        <div class="stat-row"><span class="stat-label">Reps</span><span class="stat-val">8</span></div>
+                    </div>
+                </div>
+
+                <!-- Barbell Row -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Barbell Row</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Horizontal Pull</span>
+                            <span class="badge">Back Thickness</span>
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Sets</span><span class="stat-val">4</span></div>
+                        <div class="stat-row"><span class="stat-label">Reps</span><span class="stat-val">8</span></div>
+                    </div>
+                </div>
+
+                <!-- Weighted Chin Up -->
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Weighted Chin Up</h4>
+                        <div class="exercise-meta">
+                            <span class="badge">Vertical Pull</span>
+                            <span class="badge">Biceps/Back</span>
+                        </div>
+                    </div>
+                    <div class="exercise-stats">
+                        <div class="stat-row"><span class="stat-label">Sets</span><span class="stat-val">3</span></div>
+                        <div class="stat-row"><span class="stat-label">Reps</span><span class="stat-val">6-8</span></div>
+                    </div>
+                </div>
+
+                <!-- Accessories -->
+                <div class="exercise-card" style="display: block;">
+                    <h4>Accessories</h4>
+                    <table>
+                        <thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th></tr></thead>
+                        <tbody>
+                            <tr><td>Hip Thrust</td><td>3</td><td>10</td></tr>
+                            <tr><td>Rear Delt Fly</td><td>3</td><td>15</td></tr>
+                            <tr><td>Hamstring Curl</td><td>3</td><td>12</td></tr>
+                            <tr><td>Weighted Dips</td><td>3</td><td>10</td></tr>
+                            <tr><td>Farmer Carry</td><td>4</td><td>30m</td></tr>
+                            <tr><td>Neck Training</td><td>2</td><td>20</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+             <!-- Finisher -->
+             <div style="margin-top: var(--space-lg); padding: var(--space-md); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md);">
+                <h4 style="color: var(--accent-warning); margin-bottom: var(--space-sm);">🔥 Athletic Finisher: Agility</h4>
+                <p class="text-small">Ladder Drills, Cone Drills, or Shuttle Runs. Focus on foot speed and direction change.</p>
+            </div>
+        </section>
+
+        <!-- THURSDAY -->
+        <section id="thursday" class="workout-day">
+            <div class="day-header">
+                <span class="day-tag">THURSDAY</span>
+                <h2>Zone 2 + Core + Explosive Finisher</h2>
+            </div>
+            <div class="exercise-list">
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Zone 2 Cardio</h4>
+                        <div class="exercise-stats"><div class="stat-row"><span class="stat-label">Duration</span><span class="stat-val">30-45m</span></div></div>
+                    </div>
+                </div>
+                <div class="exercise-card" style="display: block;">
+                    <h4>Core Routine</h4>
+                    <p class="text-small">Same as Tuesday. Dead Bug, Pallof Press, Side Plank, Hanging Leg Raise, Ab Wheel, Suitcase Carry.</p>
+                </div>
+                <div style="margin-top: var(--space-lg); padding: var(--space-md); background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: var(--radius-md);">
+                    <h4 style="color: var(--accent-purple); margin-bottom: var(--space-sm);">🔥 Athletic Finisher: Explosive</h4>
+                    <p class="text-small">Box Jumps, Broad Jumps, Bounds, Depth Drops. Focus on maximal power output.</p>
+                </div>
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Daily Mobility</h4>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FRIDAY -->
+        <section id="friday" class="workout-day">
+            <div class="day-header">
+                <span class="day-tag">FRIDAY</span>
+                <h2>Strength A + Plyometric Finisher</h2>
+            </div>
+            <p class="text-muted">Repeat Monday's Strength A workout. See above for details.</p>
+            <div style="margin-top: var(--space-lg); padding: var(--space-md); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md);">
+                <h4 style="color: var(--accent-danger); margin-bottom: var(--space-sm);">🔥 Athletic Finisher: Plyometrics</h4>
+                <p class="text-small">Box Jump, Broad Jump, Bounds, Depth Drop.</p>
+            </div>
+        </section>
+
+        <!-- SATURDAY -->
+        <section id="saturday" class="workout-day">
+            <div class="day-header">
+                <span class="day-tag">SATURDAY</span>
+                <h2>Zone 2 + Core + Long Mobility</h2>
+            </div>
+            <div class="exercise-list">
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Zone 2 Cardio</h4>
+                        <div class="exercise-stats"><div class="stat-row"><span class="stat-label">Duration</span><span class="stat-val">30-45m</span></div></div>
+                    </div>
+                </div>
+                <div class="exercise-card" style="display: block;">
+                    <h4>Core Routine</h4>
+                    <p class="text-small">Same as Tuesday/Thursday.</p>
+                </div>
+                <div class="exercise-card" style="display: block;">
+                    <h4>Muscular Endurance Circuit</h4>
+                    <p class="text-small">Same as Tuesday. 3-5 Rounds.</p>
+                </div>
+                <div class="exercise-card">
+                    <input type="checkbox" class="custom-checkbox">
+                    <div class="exercise-info">
+                        <h4>Extended Mobility Session</h4>
+                        <div class="exercise-notes">
+                            20-30 Minute Full Body Stretch Session. Focus on deep tissue release and flexibility.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SUNDAY -->
+        <section id="sunday" class="workout-day">
+            <div class="day-header">
+                <span class="day-tag">SUNDAY</span>
+                <h2>Strength B + Reaction Finisher</h2>
+            </div>
+            <p class="text-muted">Repeat Wednesday's Strength B workout. See above for details.</p>
+            <div style="margin-top: var(--space-lg); padding: var(--space-md); background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: var(--radius-md);">
+                <h4 style="color: var(--accent-primary); margin-bottom: var(--space-sm);">🔥 Athletic Finisher: Reaction</h4>
+                <p class="text-small">Ball Drop drills, Mirror Drills, Random Direction Change.</p>
+            </div>
+        </section>
+
+        <!-- RECOVERY & NOTES -->
+        <section id="recovery" style="margin-top: var(--space-xxl); padding-top: var(--space-xl); border-top: 1px solid var(--border-subtle);">
+            <h2>Recovery Checklist</h2>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h4>Daily Non-Negotiables</h4>
+                    <ul style="list-style: none; margin-top: var(--space-md);">
+                        <li style="margin-bottom: var(--space-sm); display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" class="custom-checkbox" style="position: static; width: 16px; height: 16px;"> Sleep 7.5-9 Hours
+                        </li>
+                        <li style="margin-bottom: var(--space-sm); display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" class="custom-checkbox" style="position: static; width: 16px; height: 16px;"> Protein 1.6-2.2 g/kg
+                        </li>
+                        <li style="margin-bottom: var(--space-sm); display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" class="custom-checkbox" style="position: static; width: 16px; height: 16px;"> Hydration (3-4L)
+                        </li>
+                        <li style="margin-bottom: var(--space-sm); display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" class="custom-checkbox" style="position: static; width: 16px; height: 16px;"> 6,000-10,000 Daily Steps
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Progression Rules</h4>
+                    <ul style="list-style: none; margin-top: var(--space-md);">
+                        <li style="margin-bottom: var(--space-sm);">✓ Progressive Overload (Add weight/reps weekly)</li>
+                        <li style="margin-bottom: var(--space-sm);">✓ Deload Every 6-8 Weeks</li>
+                        <li style="margin-bottom: var(--space-sm);">✓ Good Exercise Technique > Ego</li>
+                        <li style="margin-bottom: var(--space-sm);">✓ Never Train Through Sharp Pain</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer style="margin-top: var(--space-xxl); text-align: center; color: var(--text-tertiary); font-size: 0.8rem; padding-bottom: var(--space-xl);">
+            <p>Hybrid Athlete OS v1.0 • Designed for Long-Term Consistency</p>
+        </footer>
+
+    </main>
+</div>
+
+<script>
+    // Simple Interaction Logic
+
+    // 1. Smooth Scroll for Navigation
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+
+            // Update Active State
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // 2. Checkbox Persistence (Local Storage Simulation)
+    // In a real app, this would save to a database. Here it persists for the session.
+    const checkboxes = document.querySelectorAll('.custom-checkbox');
+
+    // Load state
+    checkboxes.forEach((box, index) => {
+        const saved = localStorage.getItem(`hybrid_os_check_${index}`);
+        if (saved === 'true') box.checked = true;
+
+        box.addEventListener('change', () => {
+            localStorage.setItem(`hybrid_os_check_${index}`, box.checked);
+
+            // Visual feedback
+            if(box.checked) {
+                box.parentElement.style.opacity = '0.7';
+            } else {
+                box.parentElement.style.opacity = '1';
+            }
+        });
+
+        // Initial visual state
+        if(box.checked) box.parentElement.style.opacity = '0.7';
+    });
+
+    // 3. Scroll Spy for Sidebar Highlighting
+    window.addEventListener('scroll', () => {
+        let current = '';
+        const sections = document.querySelectorAll('section');
+
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            if (pageYOffset >= (sectionTop - 200)) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        document.querySelectorAll('.nav-item').forEach(li => {
+            li.classList.remove('active');
+            if (li.getAttribute('href').includes(current)) {
+                li.classList.add('active');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
